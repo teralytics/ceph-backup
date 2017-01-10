@@ -5,7 +5,7 @@ setup(
     name='cephbackup',
     version='0.0.1',
     packages=['cephbackup',],
-    install_requires=['executor','python-cephlibs'],
+    install_requires=['executor'],
     entry_points={'console_scripts': ['cephbackup = cephbackup.__main__:main']},
     url='',
     license='',
