@@ -154,7 +154,7 @@ class CephFullBackup(object):
             raise Exception("The destination file already exists!")
         # This a read-only command to validate ceph resources, can be executed even in check mode
         # Exception will be thrown if command fails
-        execute('rbd info {image}'.format(image=name), sudo=True)
+        execute('rbd info {pool}/{image}'.format(pool=self._pool, image=name), sudo=True)
         cmdlist = []
         if not base:
             # This is a full (non diff) export of the image or snapshot
@@ -163,7 +163,7 @@ class CephFullBackup(object):
         else:
             # Exporting diffs from a base image or snapshot
             # Validate also the base
-            execute('rbd info {base}'.format(base=name), sudo=True)
+            execute('rbd info {pool}/{base}'.format(pool=self._pool, base=name), sudo=True)
             print "Exporting diff {base} -> {image} to {dest}".format(base=base, image=name, dest=dest)
             cmdlist.append('rbd export-diff --from-snap {base} {pool}/{image} {dest}'.format(base=base, pool=self._pool, image=name, dest=dest))
         if self._compress_mode:
