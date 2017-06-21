@@ -3,10 +3,9 @@
 A tool to take backups of ceph rados block images that works in two backup modes (see [Sample configuration](#sample-configuration)):
 
  * Incremental: incremental backups within a given backup window based on rbd snapshots
- * Full: full image exports without snapshots
+ * Full: full image exports based on a temporary snapshot
 
 **Note on consistency**: this tool makes snapshots of rbd images without any awareness of the status of the filesystem they contain. Be aware of the consistency limits of rbd snapshots: http://docs.ceph.com/docs/hammer/rbd/rbd-snapshot/.
-Also, since "Full" mode doesn't use snapshots, backups of *live* images in "Full" mode are not consistent (on the contrary, "Incremental" mode always uses snapshots).
 
 ## Building
 

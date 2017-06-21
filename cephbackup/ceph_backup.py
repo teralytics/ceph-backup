@@ -62,7 +62,17 @@ class CephFullBackup(object):
         if self._check_mode:
             print "Running in check mode: backup commands will just be printed and not executed"
         for image in self._images:
-            self._export_image_or_snapshot(image, image, base=None)
+            timestamp = self._get_timestamp_str()
+            fullsnapshotname = CephFullBackup._get_full_snapshot_name(image, timestamp)
+
+            # Take snapshot
+            self._create_snapshot(image, timestamp)
+
+            # Export image
+            self._export_image_or_snapshot(fullsnapshotname, image, base=None)
+
+            # Delete Snapshot after export
+            self._delete_snapshot(image, timestamp)
 
     def _get_snapshots(self, imagename):
         '''
