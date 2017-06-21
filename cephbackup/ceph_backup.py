@@ -18,7 +18,8 @@ class CephFullBackup(object):
             # rbd export test@snap testexport
     '''
 
-    TIMESTAMP_FMT = 'UTC%Y%m%dT%H%M%S'
+    PREFIX = 'BACKUP'
+    TIMESTAMP_FMT = '{}UTC%Y%m%dT%H%M%S'.format(PREFIX)
     FULL_BACKUP_SUFFIX = '.full'
     DIFF_BACKUP_SUFFIX = '.diff_from'
     COMPRESSED_BACKUP_SUFFIX = '.tar.gz'
@@ -69,10 +70,16 @@ class CephFullBackup(object):
         Each snapshot is represented like the following:
         {'id': 40L, 'name': u'UTC20161117T164401', 'size': 21474836480L}
         '''
+
+        prefix_length = len(CephFullBackup.PREFIX)
+
         image = rbd.Image(self._ceph_ioctx, imagename)
         snapshots = []
         for snapshot in image.list_snaps():
-            snapshots.append(snapshot)
+            # only return backup snapshots
+            if snapshot.get('name')[0:prefix_length] == CephFullBackup.PREFIX:
+                snapshots.append(snapshot)
+
         return snapshots
 
     def _get_oldest_snapshot(self, imagename):
