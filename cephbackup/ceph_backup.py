@@ -46,6 +46,10 @@ class CephFullBackup(object):
         self._ceph_ioctx = cluster.open_ioctx(pool)
         self._ceph_rbd = rbd.RBD()
 
+        # support wildcard for images
+        if len(self._images) == 1 and self._images[0] == '*':
+            self._images = self._get_images()
+
     def print_overview(self):
         print "Images to backup:"
         for image in self._images:
@@ -73,6 +77,13 @@ class CephFullBackup(object):
 
             # Delete Snapshot after export
             self._delete_snapshot(image, timestamp)
+
+    def _get_images(self):
+        '''
+        Fetches a list of all images inside the pool.
+        '''
+
+        return self._ceph_rbd.list(self._ceph_ioctx)
 
     def _get_snapshots(self, imagename):
         '''

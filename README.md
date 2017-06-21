@@ -39,6 +39,10 @@ Exported backup files will be compressed.
     backup mode = incremental
     check mode = no
 
+### Backup all images
+
+Using `images = *` creates a backup of all images in the pool.
+
 ## Restoring an incremental backup
 
 Restore the base export (full):
