@@ -18,7 +18,8 @@ class CephFullBackup(object):
             # rbd export test@snap testexport
     '''
 
-    TIMESTAMP_FMT = 'UTC%Y%m%dT%H%M%S'
+    PREFIX = 'BACKUP'
+    TIMESTAMP_FMT = '{}UTC%Y%m%dT%H%M%S'.format(PREFIX)
     FULL_BACKUP_SUFFIX = '.full'
     DIFF_BACKUP_SUFFIX = '.diff_from'
     COMPRESSED_BACKUP_SUFFIX = '.tar.gz'
@@ -45,6 +46,10 @@ class CephFullBackup(object):
         self._ceph_ioctx = cluster.open_ioctx(pool)
         self._ceph_rbd = rbd.RBD()
 
+        # support wildcard for images
+        if len(self._images) == 1 and self._images[0] == '*':
+            self._images = self._get_images()
+
     def print_overview(self):
         print "Images to backup:"
         for image in self._images:
@@ -61,7 +66,24 @@ class CephFullBackup(object):
         if self._check_mode:
             print "Running in check mode: backup commands will just be printed and not executed"
         for image in self._images:
-            self._export_image_or_snapshot(image, image, base=None)
+            timestamp = self._get_timestamp_str()
+            fullsnapshotname = CephFullBackup._get_full_snapshot_name(image, timestamp)
+
+            # Take snapshot
+            self._create_snapshot(image, timestamp)
+
+            # Export image
+            self._export_image_or_snapshot(fullsnapshotname, image, base=None)
+
+            # Delete Snapshot after export
+            self._delete_snapshot(image, timestamp)
+
+    def _get_images(self):
+        '''
+        Fetches a list of all images inside the pool.
+        '''
+
+        return self._ceph_rbd.list(self._ceph_ioctx)
 
     def _get_snapshots(self, imagename):
         '''
@@ -69,10 +91,16 @@ class CephFullBackup(object):
         Each snapshot is represented like the following:
         {'id': 40L, 'name': u'UTC20161117T164401', 'size': 21474836480L}
         '''
+
+        prefix_length = len(CephFullBackup.PREFIX)
+
         image = rbd.Image(self._ceph_ioctx, imagename)
         snapshots = []
         for snapshot in image.list_snaps():
-            snapshots.append(snapshot)
+            # only return backup snapshots
+            if snapshot.get('name')[0:prefix_length] == CephFullBackup.PREFIX:
+                snapshots.append(snapshot)
+
         return snapshots
 
     def _get_oldest_snapshot(self, imagename):
