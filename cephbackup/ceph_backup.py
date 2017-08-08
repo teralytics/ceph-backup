@@ -298,7 +298,7 @@ class CephFullBackup(object):
         base_backup_folder = os.path.join(self._backup_dest, self._pool, image)
         date_ref = self._get_date_from_timestamp_str(timestamp)
         for export in os.listdir(base_backup_folder):
-            m = re.match('{}@(.*?)[{}|{}]'.format(image, CephFullBackup.DIFF_BACKUP_SUFFIX, CephFullBackup.FULL_BACKUP_SUFFIX), export)
+            m = re.match('{}@({}.*?)[{}|{}]'.format(image, self.PREFIX, CephFullBackup.DIFF_BACKUP_SUFFIX, CephFullBackup.FULL_BACKUP_SUFFIX), export)
             if not m:
                 print "WARNING: unexpected file in {base}: {fn}".format(base=base_backup_folder, fn=export)
                 continue
